@@ -42,6 +42,12 @@ ksplit <-
            trim = (METHOD == "direct"), zap.digits = ZAP.DIGITS)
 dim(ksplit) <- dim(ysplit)
 
+## zapsmallp() but don't trim for method=iterative
+
+if (METHOD == "iterative")
+    for (i in seq_along(ksplit))
+        ksplit[[i]] <- zapsmallp(ksplit[[i]], digits = 3)
+
 png(sprintf("%s-kernels.png", INFILE), width = 1000, height = 1000)
 par(mfrow = rev(dim(ysplit)), oma = rep(0, 4), mai = rep(0, 4), mar = rep(0, 4))
 invisible(lapply(t(ksplit), image, axes = FALSE))

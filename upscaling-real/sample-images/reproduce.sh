@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ## Run with METHOD=iterative and METHOD=direct (but iterative not shown on website)
-export METHOD=direct
+export METHOD=iterative
 
 for KBW in 0.35 -1; do
     for FACTOR in 1 2 3; do
