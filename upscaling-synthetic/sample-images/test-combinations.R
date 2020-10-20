@@ -146,16 +146,16 @@ for (I in seq_along(sample.images))
         ## use first position to show kernel
         if (fexists(s, FALSE))
         {
-            tmp <- rip.cv.import(fout(s), type = "grayscale") / 255
-            if (s == "noisy") tmp <- rip.resize(tmp, d = 2 * dim(tmp), method = "CUBIC")
+            tmp <- rip.import(fout(s), type = "grayscale") / 255
+            if (s == "noisy") tmp <- rip.resize(tmp, d = 2 * dim(tmp), method = "cubic")
             out.list[[s]][II * 260 + seq_len(nrow(tmp)),
                           JJ * 260 + seq_len(ncol(tmp))] <- tmp
         }
     }
 }
 for (s in c("noisy", "giid", "gar", "siid", "sar"))
-    rip.cv.export(round(255 * out.list[[s]]),
-                  file = file.path(OUTDIR, sprintf("combined-%s.png", s)))
+    rip.export(round(255 * out.list[[s]]),
+               file = file.path(OUTDIR, sprintf("combined-%s.png", s)))
 
 ## also create 'combined-latent.png' in current directory with ground truth images
 
@@ -170,6 +170,6 @@ if (!file.exists("combined-latent.png"))
         latent[II * 260 + seq_len(nrow(tmp)),
                JJ * 260 + seq_len(ncol(tmp))] <- tmp
     }
-    rip.cv.export(round(255 * latent), file = "combined-latent.png")
+    rip.export(round(255 * latent), file = "combined-latent.png")
 }
 

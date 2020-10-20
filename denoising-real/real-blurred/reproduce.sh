@@ -2,7 +2,7 @@
 
 ## Run with LAMBDA=0.001 and LAMBDA=0.01, METHOD=direct and METHOD=iterative
 
-export LAMBDA=0.001
+export LAMBDA=0.01
 export METHOD=direct
 
 Rscript denoise-image.R butterfly2.jpg $LAMBDA color butterfly2-cropped.jpg

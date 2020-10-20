@@ -42,11 +42,11 @@ ksplit <-
            trim = (METHOD == "direct"), zap.digits = ZAP.DIGITS)
 dim(ksplit) <- dim(ysplit)
 
-## zapsmallp() but don't trim for method=iterative
+## zapsmallp() but don't trim for method=iterative: check if this helps with artifacts
 
-if (METHOD == "iterative")
-    for (i in seq_along(ksplit))
-        ksplit[[i]] <- zapsmallp(ksplit[[i]], digits = 3)
+## if (METHOD == "iterative")
+##     for (i in seq_along(ksplit))
+##         ksplit[[i]] <- zapsmallp(ksplit[[i]], digits = ZAP.DIGITS)
 
 png(sprintf("%s-kernels.png", INFILE), width = 1000, height = 1000)
 par(mfrow = rev(dim(ysplit)), oma = rep(0, 4), mai = rep(0, 4), mar = rep(0, 4))

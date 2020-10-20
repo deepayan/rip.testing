@@ -2,7 +2,7 @@
 
 ## Run with ESTKERN=TRUE and ESTKERN=FALSE
 
-export ESTKERN=TRUE 
+export ESTKERN=FALSE
 
 ## S = 10
 
