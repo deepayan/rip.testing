@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <meta name="author" content="Deepayan Sarkar" />
+    <title>Denoising slightly blurred images</title>
+
+    <link rel="stylesheet"
+	  href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+	  integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+	  crossorigin="anonymous">
+
+    <link rel="stylesheet" type="text/css" href="assets/imgslider.css">
+
+  </head>
+
+
+  <body>
+
+    <div id="page-content">
+      <section>
+
+	<nav class="navbar navbar-expand-md" id="topnav">
+	  <div class="container-fluid">
+	    
+	    <div class="navbar-header">
+	      <div class="btn-group navbar-nav nav-item dropdown">
+		<button type="button" class="btn nav-link"
+			data-toggle="dropdown" aria-haspopup="true"
+			aria-expanded="false">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 16" width="24" height="32">
+                    <path fill-rule="evenodd" d="M11.41 9H.59C0 9 0 8.59 0 8c0-.59 0-1 .59-1H11.4c.59 0 .59.41.59 1 0 .59 0 1-.59 1h.01zm0-4H.59C0 5 0 4.59 0 4c0-.59 0-1 .59-1H11.4c.59 0 .59.41.59 1 0 .59 0 1-.59 1h.01zM.59 11H11.4c.59 0 .59.41.59 1 0 .59 0 1-.59 1H.59C0 13 0 12.59 0 12c0-.59 0-1 .59-1z">
+                    </path>
+                  </svg>
+		</button>
+		<div class="dropdown-menu">
+		  <a href="index.html" class="dropdown-item" role="button">
+		    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="24" height="24">
+		      <path fill-rule="evenodd" d="M16 9l-3-3V2h-2v2L8 1 0 9h2l1 5c0 .55.45 1 1 1h8c.55 0 1-.45 1-1l1-5h2zm-4 5H9v-4H7v4H4L2.81 7.69 8 2.5l5.19 5.19L12 14z"></path>
+		    </svg>
+		    Home
+		  </a>
+
+		  <a class="dropdown-item list-group-item active" role="button" href="denoising.html">Denoising slightly blurred images</a>
+		  <a class="dropdown-item list-group-item" role="button" href="denoising-by-parts.html">Denoising with locally estimated kernel</a>
+		  <a class="dropdown-item list-group-item" role="button" href="upscaling-testimages.html">Super-resolution applied on test images (3x, 2x, and 1x)</a>
+		  <a class="dropdown-item list-group-item" role="button" href="upscaling-others.html">Super-resolution applied on a few other images</a>
+		  <a class="dropdown-item list-group-item" role="button" href="upscaling-synthetic.html">Super-resolution on synthetically downsampled images</a>
+		  <a class="dropdown-item list-group-item" role="button" href="deconvolution-synthetic.html">Deconvolution on images synthetically blurred with complicated kernels</a>
+		  <a class="dropdown-item list-group-item" role="button" href="deconvolution-blind.html">Blind deconvolution on images from Fergus et al</a>
+		  <a class="dropdown-item list-group-item" role="button" href="inpainting.html">Inpainting example with robust loss function</a>
+		  <a class="dropdown-item list-group-item" role="button" href="robust-denoise.html">Robust denoising as a post-processing step</a>
+		  
+		</div>
+	      </div>
+	    </div>
+
+	    <div class="navbar-header">
+	      <span class="h6">Image:&nbsp;
+		<span class="btn-group btn-group-toggle" data-toggle="buttons">
+		  <label class="btn btn-light border-dark active"><input type="radio" onclick="setImage('cheetah2.jpg-color')" checked>1</label>
+		  <label class="btn btn-light border-dark"><input type="radio" onclick="setImage('butterfly2.jpg-color')">2</label>
+		  <label class="btn btn-light border-dark"><input type="radio" onclick="setImage('hyena2_med.jpg-color')">3</label>
+		  <label class="btn btn-light border-dark"><input type="radio" onclick="setImage('tutu.jpg-grayscale')">4</label>
+		  <label class="btn btn-light border-dark"><input type="radio" onclick="setImage('chebolu-moon.jpg-grayscale')">5</label>
+		  <label class="btn btn-light border-dark"><input type="radio" onclick="setImage('mukta.jpg-color')">6</label>
+		  <label class="btn btn-light border-dark"><input type="radio" onclick="setImage('lyndsey2_blurry.jpg-color')">7</label>
+		  <label class="btn btn-light border-dark"><input type="radio" onclick="setImage('nayak-1.jpg-grayscale')">8</label>
+		  <label class="btn btn-light border-dark"><input type="radio" onclick="setImage('nayak-2.jpg-grayscale')">9</label>
+		  <label class="btn btn-light border-dark"><input type="radio" onclick="setImage('bk-electric-house.png-grayscale')">10</label>
+		</span>
+	      </span>&nbsp;
+	      <span class="h6">Method:&nbsp;
+		<span class="btn-group btn-group-toggle" data-toggle="buttons">
+		  <label class="btn btn-light border-dark active"><input type="radio" onclick="setRightPar('METHOD', 'direct');" checked>Direct</label>
+		  <label class="btn btn-light border-dark"><input type="radio" onclick="setRightPar('METHOD', 'iterative');">Conjugate Gradient</label>
+		</span>
+	      </span>
+	    </div>
+	    
+	    <div class="navbar-header">
+	      <span class="custom-nav-title h4 d-inline">Denoising</span>
+	    </div>
+
+	  </div>
+	</nav>
+
+	<hr>
+	
+	<div class="container-fluid">
+	  <p class="text-center">
+	    <a id="leftImageLink" href=""></a>
+	    <span type="button" id="resetLeftButton" class="badge badge-info d-none" onclick="resetLeft();">&nbsp;Reset to Original</span>
+	    &nbsp;<span class="font-weight-bold">vs</span>&nbsp;
+	    <a id="rightImageLink" href=""></a>
+	    &nbsp;
+	    <span type="button" class="badge badge-info" onclick="rightToLeft();">Set as Left Image</span>
+	  </p>
+
+	  <p class="text-center"> <!-- Prior:&nbsp; -->
+	    <span class="btn-group btn-group-toggle" data-toggle="buttons">
+	      <label class="btn btn-light border-dark"><input type="radio" onclick="setRightPar('PRIOR', 'rl');">Richardson-Lucy</label>
+	      <label class="btn btn-light border-dark active"><input type="radio" onclick="setRightPar('PRIOR', 'giid');">IID Gaussian</label>
+	      <label class="btn btn-light border-dark"><input type="radio" onclick="setRightPar('PRIOR', 'gar');">AR Gaussian</label>
+	      <label class="btn btn-light border-dark"><input type="radio" onclick="setRightPar('PRIOR', 'siid');">IID Sparse</label>
+	      <label class="btn btn-light border-dark"><input type="radio" onclick="setRightPar('PRIOR', 'sar');" checked>AR Sparse</label>
+	    </span>
+	    &nbsp;
+	    <!-- &nbsp;Smoothing λ:&nbsp; -->
+	    <span class="btn-group btn-group-toggle" data-toggle="buttons">
+	      <label class="btn btn-light border-dark active"><input type="radio" onclick="setRightPar('LAMBDA', '0.01');">λ=0.01</label>
+	      <label class="btn btn-light border-dark"><input type="radio" onclick="setRightPar('LAMBDA', '0.001');" checked>λ=0.001</label>
+	    </span>
+	  </p>
+
+	  <div class="slider">
+	    <div class="slider responsive">
+	      <div class="left image">
+		<img id="leftImage" src="" alt=""/>
+	      </div>
+	      <div class="right image">
+		<img id="rightImage" src="" alt=""/>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
+	<div class="container">
+	  <hr>
+
+	  <p>
+	    These results illustrate the process of denoising on
+	    several real-life (slightly) blurred images. The process
+	    is more correctly viewed as deconvolution, as the blur
+	    kernel plays an important role in the quality of the
+	    recovered image. In all these examples, the kernel is
+	    estimated from the input image using a Fourier domain
+	    computation which assumes that image gradients are
+	    correlated (according to the AR model described below). In
+	    some cases, the kernel is estimated from a cropped
+	    subregion of the image (see code for precise
+	    details). This method assumes that the kernel is
+	    symmetric, which is often not true for blur due to camera
+	    shake, and is thus of limited use.
+	  </p>
+
+	  <p>
+	    The estimated kernels are cropped to a size of 11 x 11
+	    pixels. Further, for the direct method, entries less than
+	    1% of the maximum are set to 0. For the conjugate gradient
+	    method, the solver runs for 100 iterations for each
+	    invocation.
+	  </p>
+
+	  <p>λ is the regularization parameter; larger values give
+	    more importance to the prior and less to image
+	    fidelity. The AR priors assume that the image gradients
+	    are correlated (according to a simple independent 2-D
+	    auto-regressive model with correlation parameters 0.3 and
+	    0.6). The IID priors assume that the gradients are
+	    independent.
+	  </p>
+
+	  <p>
+	    For most of these examples, the AR Sparse prior with λ =
+	    0.001 gives the best visual result, especially compared to
+	    the IID Sparse prior which tends to oversmooth. The
+	    Gaussian prior with λ = 0.01 also gives reasonable
+	    results, depending on the image, and has the advantage of
+	    being a <em>lot</em> faster.  The even faster
+	    Richardson-Lucy method also performs quite well.
+	  </p>
+
+	  <h4 class="h4">Image details</h4>
+
+	  <p>1, 2, 3. From personal collection.</p>
+
+	  <p>4. Old family photograph from personal collection.</p>
+
+	  <p>5. From mathematician and amateur
+	  astronomer <a href="https://math.illinoisstate.edu/schebol/">Sunil
+	  Chebolu</a>. Due to considerable variation in distance of
+	  different parts of the moon from the camera, the blur is not
+	  the same in different parts of the input image. The kernel
+	  used here is estimated from a cropped subregion. See also
+	  the results of <a href="denoising-by-parts.html">denoising
+	  with locally estimated kernel</a>. </p>
+
+	  <p>6, 7. From Fergus et al
+	  (2006), <a href="https://cs.nyu.edu/~fergus/research/deblur.html">Removing
+	  camera shake from a single image</a>. The recovered images
+	  from the original work (using Richardson-Lucy) are
+	  available <a href="../denoising-real/real-blurred/other-methods/fergus_mukta1_final2.jpg">here</a>
+	  and <a href="../denoising-real/real-blurred/other-methods/fergus_lyndsey2_final.jpg">here</a>. These
+	  are substantially better than the results we obtain assuming
+	  a symmetric kernel, showing the importance of estimating the
+	  kernel well. See <a href="deconvolution-blind.html">this
+	  demo</a> for results of deconvolution using the kernels
+	  estimated by Fergus et al instead of our simpler
+	  method. </p>
+
+	  <p>8, 9. Frames from the Satyajit Ray
+	  film <a href="https://en.wikipedia.org/wiki/Nayak_(1966_film)">Nayak</a>. The
+	  original in the first frame has good focus, but is still
+	  visibly improved by denoising. The focus is slighly off in
+	  the second frame, which is considerably improved by
+	  denoising. See also the results
+	  of <a href="denoising-by-parts.html">denoising with locally
+	  estimated kernel</a>. </p>
+
+	  <p>10. A frame from the Buster Keaton
+	  film <a href="https://en.wikipedia.org/wiki/The_Electric_House">The
+	  Electric House</a>, obtained
+	  from <a href="https://archive.org/details/TheElectricHouse">The
+	  Internet Archive</a>. Also used to
+	  illustrate <a href="upscaling-others.html">super-resolution</a>. </p>
+
+	  <hr>
+
+	  <!-- Other demos: -->
+	  <!-- <ul> -->
+	  <!--   <\!-- <li><a href="denoising.html">Denoising</a> slightly blurred images </li> -\-> -->
+	  <!--   <li><a href="denoising-by-parts.html">Denoising</a> with locally estimated kernel </li> -->
+	  <!--   <li><a href="upscaling-testimages.html">Super-resolution</a> applied on test images (3x, 2x, and 1x)</li> -->
+	  <!--   <li><a href="upscaling-others.html">Super-resolution</a> applied on a few other images</li> -->
+	  <!--   <li><a href="upscaling-synthetic.html">Super-resolution</a> on synthetically downsampled images</li> -->
+	  <!--   <li><a href="deconvolution-synthetic.html">Deconvolution</a> on images synthetically blurred with complicated kernels</li> -->
+	  <!--   <li><a href="deconvolution-blind.html">Blind deconvolution</a> on images from Fergus et al</li> -->
+	  <!--   <li><a href="inpainting.html">Inpainting</a> example with robust loss function</li> -->
+	  <!-- </ul> -->
+
+	</div>
+	
+      </section>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+	    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+	    crossorigin="anonymous">
+    </script>
+
+    <script type="text/javascript" src="assets/imgslider.js">
+    </script>
+
+    <script type="text/javascript" src="assets/filenames.js">
+    </script>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+	    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+	    crossorigin="anonymous">
+    </script>
+
+    <script type="text/javascript">
+      $('.slider').slider(); // {sliderWidth: 200}
+      initPageVars({ IMAGE: "cheetah2.jpg-color", METHOD: "direct", LAMBDA: "0.001", FACTOR: "",
+		     PRIOR: "000-original", KERNEL: 'autoreg-kernel-0.005', FROOT: "../denoising-real/real-blurred/"},
+		   { IMAGE: "cheetah2.jpg-color", METHOD: "direct", LAMBDA: "0.001", FACTOR: "",
+		     PRIOR: "sar",        KERNEL: 'autoreg-kernel-0.005', FROOT: "../denoising-real/real-blurred/"});
+    </script>
+    
+  </body>
+</html>

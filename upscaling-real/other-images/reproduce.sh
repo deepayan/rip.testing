@@ -2,7 +2,7 @@
 
 ## Run with METHOD=iterative and METHOD=direct
 
-export METHOD=direct
+export METHOD=iterative
 
 for LAMBDA in 0.01 0.001; do
     for FILE in Im_24.png Im_6.png bk-electric-house.png; do

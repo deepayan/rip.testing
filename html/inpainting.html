@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <meta name="author" content="Deepayan Sarkar" />
+    <title>Inpainting with robust loss function</title>
+
+    <link rel="stylesheet"
+	  href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+	  integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+	  crossorigin="anonymous">
+
+    <link rel="stylesheet" type="text/css" href="assets/imgslider.css">
+
+  </head>
+
+
+  <!-- FIXME: need slider width to match image width -->
+
+  
+  <body>
+
+    <div id="page-content">
+      <section>
+
+	<nav class="navbar navbar-expand-md" id="topnav">
+	  <div class="container-fluid">
+	    
+	    <div class="navbar-header">
+	      <div class="btn-group navbar-nav nav-item dropdown">
+		<button type="button" class="btn nav-link"
+			data-toggle="dropdown" aria-haspopup="true"
+			aria-expanded="false">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 16" width="24" height="32">
+                    <path fill-rule="evenodd" d="M11.41 9H.59C0 9 0 8.59 0 8c0-.59 0-1 .59-1H11.4c.59 0 .59.41.59 1 0 .59 0 1-.59 1h.01zm0-4H.59C0 5 0 4.59 0 4c0-.59 0-1 .59-1H11.4c.59 0 .59.41.59 1 0 .59 0 1-.59 1h.01zM.59 11H11.4c.59 0 .59.41.59 1 0 .59 0 1-.59 1H.59C0 13 0 12.59 0 12c0-.59 0-1 .59-1z">
+                    </path>
+                  </svg>
+		</button>
+		<div class="dropdown-menu">
+		  <a href="index.html" class="dropdown-item" role="button">
+		    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="24" height="24">
+		      <path fill-rule="evenodd" d="M16 9l-3-3V2h-2v2L8 1 0 9h2l1 5c0 .55.45 1 1 1h8c.55 0 1-.45 1-1l1-5h2zm-4 5H9v-4H7v4H4L2.81 7.69 8 2.5l5.19 5.19L12 14z"></path>
+		    </svg>
+		    Home
+		  </a>
+
+		  <a class="dropdown-item list-group-item" role="button" href="denoising.html">Denoising slightly blurred images</a>
+		  <a class="dropdown-item list-group-item" role="button" href="denoising-by-parts.html">Denoising with locally estimated kernel</a>
+		  <a class="dropdown-item list-group-item" role="button" href="upscaling-testimages.html">Super-resolution applied on test images (3x, 2x, and 1x)</a>
+		  <a class="dropdown-item list-group-item" role="button" href="upscaling-others.html">Super-resolution applied on a few other images</a>
+		  <a class="dropdown-item list-group-item" role="button" href="upscaling-synthetic.html">Super-resolution on synthetically downsampled images</a>
+		  <a class="dropdown-item list-group-item" role="button" href="deconvolution-synthetic.html">Deconvolution on images synthetically blurred with complicated kernels</a>
+		  <a class="dropdown-item list-group-item" role="button" href="deconvolution-blind.html">Blind deconvolution on images from Fergus et al</a>
+		  <a class="dropdown-item list-group-item active" role="button" href="inpainting.html">Inpainting example with robust loss function</a>
+		  <a class="dropdown-item list-group-item" role="button" href="robust-denoise.html">Robust denoising as a post-processing step</a>
+		  
+		</div>
+	      </div>
+	    </div>
+
+	    <div class="navbar-header">
+	      <span class="h6">Threshold:&nbsp;
+		<span class="btn-group btn-group-toggle" data-toggle="buttons">
+		  <label class="btn btn-light border-dark active"><input type="radio" onclick="setImage('mesh.jpg-0.65')">0.65</label>
+		  <label class="btn btn-light border-dark active"><input type="radio" onclick="setImage('mesh.jpg-0.7')" checked>0.7</label>
+		</span>
+	      </span>
+	    </div>
+	    
+	    <div class="navbar-header">
+	      <span class="custom-nav-title h4 d-inline">Inpainting with robust loss</span>
+	    </div>
+
+	  </div>
+	</nav>
+
+	<hr>
+
+	<!-- <div class="container-fluid"> -->
+	<!--   <hr> -->
+	<!--   <p class="text-center"> -->
+	<!--     <span class="h4">Inpainting with robust loss:&nbsp; -->
+	<!--     <span class="h6">Threshold:&nbsp; -->
+	<!--       <span class="btn-group btn-group-toggle" data-toggle="buttons"> -->
+	<!-- 	<label class="btn btn-light border-dark active"><input type="radio" onclick="setImage('mesh.jpg-0.65-')">0.65</label> -->
+	<!-- 	<label class="btn btn-light border-dark active"><input type="radio" onclick="setImage('mesh.jpg-0.7-')" checked>0.7</label> -->
+	<!--       </span> -->
+	<!--     </span> -->
+	<!--   </p> -->
+	<!-- </div> -->
+
+	<div class="container-fluid">
+	  <p class="text-center">
+	    <a id="leftImageLink" href=""></a>
+	    <span type="button" id="resetLeftButton" class="badge badge-info d-none" onclick="resetLeft();">&nbsp;Reset to Original</span>
+	    &nbsp;<span class="font-weight-bold">vs</span>&nbsp;
+	    <a id="rightImageLink" href=""></a>
+	    &nbsp;
+	    <span type="button" class="badge badge-info" onclick="rightToLeft();">Set as Left Image</span>
+	  </p>
+
+	  <p class="text-center"> <!-- Prior:&nbsp; -->
+	    <span class="btn-group btn-group-toggle" data-toggle="buttons">
+	      <label class="btn btn-light border-dark active"><input type="radio" onclick="setRightPar('PRIOR', 'giid');" checked>IID Gaussian + L2</label>
+	      <label class="btn btn-light border-dark"><input type="radio" onclick="setRightPar('PRIOR', 'giid.robust');">IID Gaussian + Huber</label>
+	      <label class="btn btn-light border-dark"><input type="radio" onclick="setRightPar('PRIOR', 'sar');">AR Sparse + L2</label>
+	      <label class="btn btn-light border-dark"><input type="radio" onclick="setRightPar('PRIOR', 'sar.robust');">AR Sparse + Huber</label>
+	      <label class="btn btn-light border-dark"><input type="radio" onclick="setRightPar('PRIOR', 'incv');">Telea04</label>
+	      <label class="btn btn-light border-dark"><input type="radio" onclick="setRightPar('PRIOR', 'incv.robust');">Telea04 &gt; Huber</label>
+	    </span>
+	    &nbsp;
+	    <!-- &nbsp;Smoothing λ:&nbsp; -->
+	    <span class="btn-group btn-group-toggle" data-toggle="buttons">
+	      <label class="btn btn-light border-dark active"><input type="radio" onclick="setRightPar('LAMBDA', '0.01');" checked>λ=0.01</label>
+	      <label class="btn btn-light border-dark"><input type="radio" onclick="setRightPar('LAMBDA', '0.001');">λ=0.001</label>
+	    </span><!-- &nbsp; -->
+	    <!-- &nbsp;Kernel:&nbsp; -->
+	      <!-- <span class="btn-group btn-group-toggle" data-toggle="buttons"> -->
+	      <!-- 	<label class="btn btn-light border-dark"><input type="radio" onclick="setRightPar('KERNEL', '1.5');" checked>h=1.5</label> -->
+	      <!-- 	<label class="btn btn-light border-dark"><input type="radio" onclick="setRightPar('KERNEL', '2');">h=2</label> -->
+	      <!-- </span> -->
+	  </p>
+
+	  <div class="slider">
+	    <div class="slider responsive">
+	      <div class="left image">
+		<img id="leftImage" src="" alt=""/>
+	      </div>
+	      <div class="right image">
+		<img id="rightImage" src="" alt=""/>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
+	<div class="container">
+	  <hr>
+
+	  <p>
+	    Example illustrating inpainting and robust (Huber) loss
+	    function. The goal is to remove the mesh and replace these
+	    missing pixels with inpainted (interpolated) pixels. We
+	    use a very crude method to detect the mesh: any pixel
+	    whose grayscale value (scaled to lie between 0 and 1) is
+	    larger than a threshold (0.65 or 0.7) is treated as
+	    missing. Pixels within a small neighbourhood of these
+	    pixels are also treated as missing.
+	  </p>
+
+	  <p>
+	    This crude procedure does not completely remove the
+	    mesh. When inpainting with squared error loss for image
+	    error (i.e., Gaussian noise for the conditional
+	    distribution of the image), these show up as artifacts in
+	    the reconstructed image. Increasing the regularization
+	    parameter λ helps with this, but changing the squared
+	    error loss to a robust loss function also helps. Here we
+	    use the Huber loss function with scale parameter set to
+	    the MAD / 0.6745 (robust estimate of the standard
+	    deviation) of the residuals in each IRLS step. Results are
+	    only shown for the IID Gaussian and AR Sparse image
+	    gradient priors.
+	  </p>
+
+	  <p>
+	    For comparison, results using the algorithm of Telea
+	    (2004),
+	    <a href="http://www.olivier-augereau.com/docs/2004JGraphToolsTelea.pdf">
+	    An image inpainting technique based on the fast marching
+	    method</a>, is also shown, as implemented in
+	    <a href="https://docs.opencv.org/master/d7/d8b/group__photo__inpaint.html">OpenCV</a>. The
+	    result of further denoising the result with a robust loss
+	    function is also shown. 
+	  </p>
+
+	  
+
+	  <hr>
+	    
+	</div>
+	
+	
+      </section>
+    </div>
+
+
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+	    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+	    crossorigin="anonymous">
+    </script>
+
+    <script type="text/javascript" src="assets/imgslider.js">
+    </script>
+
+    <script type="text/javascript" src="assets/filenames.js">
+    </script>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+	    integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+	    crossorigin="anonymous">
+    </script>
+
+    <script type="text/javascript">
+      $('.slider').slider(); // {sliderWidth: 200}
+      initPageVars({ IMAGE: "mesh.jpg-0.7", METHOD: "direct", LAMBDA: "0.01", FACTOR: "",
+		     PRIOR: "original", KERNEL: 'epanechnikov-1.5', FROOT: "../inpainting/"},
+		   { IMAGE: "mesh.jpg-0.7", METHOD: "direct", LAMBDA: "0.01", FACTOR: "",
+		     PRIOR: "giid", KERNEL: 'epanechnikov-1.5', FROOT: "../inpainting/"});
+    </script>
+    
+  </body>
+</html>

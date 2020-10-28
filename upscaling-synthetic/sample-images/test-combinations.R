@@ -87,7 +87,7 @@ for (I in seq_along(sample.images))
     fexport(y, "noisy")
     KERNEL.USED <-
         if (ESTIMATE.KERNEL)
-            symmetric.blur(rip.desaturate(y), kdim = c(5, 5),
+            symmetric.blur(rip.desaturate(y), kdim = c(2, 2),
                            resize = SR.FACTOR, g.method = "autoreg",
                            eta.sq = ETA^2, corr.grad = TRUE,
                            trim = (METHOD == "direct"), zap.digits = ZAPK.DIGITS)
