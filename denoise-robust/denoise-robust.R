@@ -25,7 +25,7 @@ fexport <- function(x, label = deparse(substitute(x)))
 
 suppressMessages(library(rip.recover))
 
-y <- rip.import(INFILE, type = "grayscale") / 255
+y <- rip.import(INFILE, type = "original") / 255
 y[] <- y^(1/GAMMA)
 
 if (!fexists("sar"))

@@ -15,14 +15,14 @@ for F in bk-electric-house.png-grayscale-gar.jpg \
     HUBERK=10 Rscript denoise-robust.R $F
     HUBERK=1 Rscript denoise-robust.R $F
     HUBERK=0.5 Rscript denoise-robust.R $F
-    Rscript denoise-bm3d.R $F
+    Rscript denoise-opencv.R $F
 done
 
 for F in image--013.png image--019.png; do
     HUBERK=10 Rscript denoise-robust.R $F
     HUBERK=1 Rscript denoise-robust.R $F
     HUBERK=0.5 Rscript denoise-robust.R $F
-    Rscript denoise-bm3d.R $F
+    Rscript denoise-opencv.R $F
 done
     
 
