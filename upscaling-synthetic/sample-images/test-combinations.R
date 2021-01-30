@@ -64,7 +64,8 @@ tryq <- function(expr)
     eval.parent(call)
 }
 
-kblur <- as.rip(matrix(1/(SR.FACTOR^2), SR.FACTOR, SR.FACTOR))
+## kblur <- as.rip(matrix(1/(SR.FACTOR^2), SR.FACTOR, SR.FACTOR))
+kblur <- make.kernel(h = 1.25, kern = "rect")
 subsamp <- rep(FALSE, SR.FACTOR)
 subsamp[ceiling(SR.FACTOR / 2)] <- TRUE
 
@@ -77,6 +78,8 @@ downsample <- function(x)
 
 set.seed(20200515)
 
+pdf("kernels.pdf", width = 8, height = 5)
+par(mfrow = c(1, 2))
 
 for (I in seq_along(sample.images))
 {
@@ -87,11 +90,14 @@ for (I in seq_along(sample.images))
     fexport(y, "noisy")
     KERNEL.USED <-
         if (ESTIMATE.KERNEL)
-            symmetric.blur(rip.desaturate(y), kdim = c(2, 2),
-                           resize = SR.FACTOR, g.method = "autoreg",
+            symmetric.blur(rip.resize(rip.desaturate(y), fx = SR.FACTOR),
+                           kdim = c(2, 2), # results in 5x5 kernel
+                           resize = 1, g.method = "autoreg",
                            eta.sq = ETA^2, corr.grad = TRUE,
-                           trim = (METHOD == "direct"), zap.digits = ZAPK.DIGITS)
+                           trim = FALSE, zap.digits = ZAPK.DIGITS)
         else kblur
+    image(-KERNEL.USED)
+    image(-kblur)
     if (!fexists("giid"))
     {
         giid <- 

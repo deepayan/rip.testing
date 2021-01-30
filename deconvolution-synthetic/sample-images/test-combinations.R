@@ -8,7 +8,6 @@ if (!length(args) %in% c(2, 3))
 } 
 
 suppressMessages(library(rip.recover))
-
 load("sample.images.rda") # additional images from Levin et al 2009
 
 S <- as.numeric(args[1]) # noise in blurred image (try 100, 10)

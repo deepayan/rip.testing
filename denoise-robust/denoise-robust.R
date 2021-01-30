@@ -25,13 +25,13 @@ fexport <- function(x, label = deparse(substitute(x)))
 
 suppressMessages(library(rip.recover))
 
-y <- rip.import(INFILE, type = "original") / 255
+y <- rip.import(INFILE, type = "grayscale") / 255
 y[] <- y^(1/GAMMA)
 
 if (!fexists("sar"))
 {
     sar <- 
-        rip.denoise(y, alpha = 0.6, lambda = LAMBDA,
+        rip.denoise(y, alpha = 0.1, lambda = LAMBDA,
                     method = METHOD, rho = rho.ar,
                     yerror = "huber", huber.k = HUBER.K,
                     kbw = 0, patch = 200, overlap = 10, verbose = TRUE)
